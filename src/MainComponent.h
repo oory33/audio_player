@@ -21,7 +21,7 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public juce::AudioAppComponent, public juce::ChangeListener
+class MainComponent   : public juce::AudioAppComponent, public juce::ChangeListener, public juce::Timer
 {
 public:
     //==============================================================================
@@ -57,7 +57,7 @@ public:
         transportSource.addChangeListener (this);   // [2]
 
         setAudioChannels (0, 2);
-
+        startTimer (20);
     }
 
     ~MainComponent() override
@@ -108,7 +108,7 @@ public:
         }
     }
 
-    void timerCallback ()
+    void timerCallback () override
     {
         if (transportSource.isPlaying())
         {
@@ -218,8 +218,8 @@ enum TransportState
     void playButtonClicked()
     {
         if ((state == Stopped) || (state == Paused))
-            updateLoopState (loopingToggle.getToggleState());
-            changeState (Starting);
+            {updateLoopState (loopingToggle.getToggleState());
+            changeState (Starting);}
         else if (state == Playing)
             changeState (Pausing);
     }
