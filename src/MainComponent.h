@@ -14,50 +14,53 @@
 #include <juce_events/juce_events.h>
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_gui_extra/juce_gui_extra.h>
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public juce::AudioAppComponent, public juce::ChangeListener, public juce::Timer
+class MainComponent : public juce::AudioAppComponent, public juce::ChangeListener, public juce::Timer
 {
 public:
     //==============================================================================
     MainComponent()
-        : state (Stopped)
+        : state(Stopped)
     {
-        addAndMakeVisible (&openButton);
-        openButton.setButtonText ("Open...");
-        openButton.onClick = [this] { openButtonClicked(); };
+        addAndMakeVisible(&openButton);
+        openButton.setButtonText("Open...");
+        openButton.onClick = [this]
+        { openButtonClicked(); };
 
-        addAndMakeVisible (&playButton);
-        playButton.setButtonText ("Play");
-        playButton.onClick = [this] { playButtonClicked(); };
-        playButton.setColour (juce::TextButton::buttonColourId, juce::Colours::green);
-        playButton.setEnabled (false);
+        addAndMakeVisible(&playButton);
+        playButton.setButtonText("Play");
+        playButton.onClick = [this]
+        { playButtonClicked(); };
+        playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+        playButton.setEnabled(false);
 
-        addAndMakeVisible (&stopButton);
-        stopButton.setButtonText ("Stop");
-        stopButton.onClick = [this] { stopButtonClicked(); };
-        stopButton.setColour (juce::TextButton::buttonColourId, juce::Colours::red);
-        stopButton.setEnabled (false);
+        addAndMakeVisible(&stopButton);
+        stopButton.setButtonText("Stop");
+        stopButton.onClick = [this]
+        { stopButtonClicked(); };
+        stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+        stopButton.setEnabled(false);
 
-        addAndMakeVisible (&loopingToggle);
-        loopingToggle.setButtonText ("Loop");
-        loopingToggle.onClick = [this] { loopButtonChanged(); };
+        addAndMakeVisible(&loopingToggle);
+        loopingToggle.setButtonText("Loop");
+        loopingToggle.onClick = [this]
+        { loopButtonChanged(); };
 
-        addAndMakeVisible (&currentPositionLabel);
-        currentPositionLabel.setText ("Stopped", juce::dontSendNotification);
+        addAndMakeVisible(&currentPositionLabel);
+        currentPositionLabel.setText("Stopped", juce::dontSendNotification);
 
-        setSize (300, 200);
+        setSize(300, 200);
 
-        formatManager.registerBasicFormats();       // [1]
-        transportSource.addChangeListener (this);   // [2]
+        formatManager.registerBasicFormats();    // [1]
+        transportSource.addChangeListener(this); // [2]
 
-        setAudioChannels (0, 2);
-        startTimer (20);
+        setAudioChannels(0, 2);
+        startTimer(20);
     }
 
     ~MainComponent() override
@@ -65,12 +68,12 @@ public:
         shutdownAudio();
     }
 
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override
     {
-        transportSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
+        transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
     }
 
-    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) override
     {
         if (readerSource.get() == nullptr)
         {
@@ -78,16 +81,16 @@ public:
             return;
         }
 
-        transportSource.getNextAudioBlock (bufferToFill);
+        transportSource.getNextAudioBlock(bufferToFill);
     }
 
     void resized() override
     {
-        openButton.setBounds (10, 10, getWidth() - 20, 20);
-        playButton.setBounds (10, 40, getWidth() - 20, 20);
-        stopButton.setBounds (10, 70, getWidth() - 20, 20);
-        loopingToggle.setBounds (10, 100, getWidth() - 20, 20);
-        currentPositionLabel.setBounds (10, 130, getWidth() - 20, 20);
+        openButton.setBounds(10, 10, getWidth() - 20, 20);
+        playButton.setBounds(10, 40, getWidth() - 20, 20);
+        stopButton.setBounds(10, 70, getWidth() - 20, 20);
+        loopingToggle.setBounds(10, 100, getWidth() - 20, 20);
+        currentPositionLabel.setBounds(10, 130, getWidth() - 20, 20);
     }
 
     void releaseResources() override
@@ -95,50 +98,50 @@ public:
         transportSource.releaseResources();
     }
 
-    void changeListenerCallback (juce::ChangeBroadcaster* source) override
+    void changeListenerCallback(juce::ChangeBroadcaster *source) override
     {
         if (source == &transportSource)
         {
             if (transportSource.isPlaying())
-                changeState (Playing);
+                changeState(Playing);
             else if ((state == Stopping) || (state == Playing))
-                changeState (Stopped);
-            else if  (Pausing == state)
-                changeState (Paused);
+                changeState(Stopped);
+            else if (Pausing == state)
+                changeState(Paused);
         }
     }
 
-    void timerCallback () override
+    void timerCallback() override
     {
         if (transportSource.isPlaying())
         {
-            juce::RelativeTime position (transportSource.getCurrentPosition());
+            juce::RelativeTime position(transportSource.getCurrentPosition());
 
-            auto minutes = (int) (position.inMinutes()) % 60;
-            auto seconds = (int) (position.inSeconds()) % 60;
-            auto millis  = (int) (position.inMilliseconds()) % 1000;
+            auto minutes = (int)(position.inMinutes()) % 60;
+            auto seconds = (int)(position.inSeconds()) % 60;
+            auto millis = (int)(position.inMilliseconds()) % 1000;
 
-            auto positionString = juce::String::formatted ("%02d:%02d:%03d", minutes, seconds, millis);
+            auto positionString = juce::String::formatted("%02d:%02d:%03d", minutes, seconds, millis);
 
-            currentPositionLabel.setText (positionString, juce::dontSendNotification);
+            currentPositionLabel.setText(positionString, juce::dontSendNotification);
         }
         else
         {
-            currentPositionLabel.setText ("Stopped", juce::dontSendNotification);
+            currentPositionLabel.setText("Stopped", juce::dontSendNotification);
         }
     }
 
-    void updateLoopState (bool shouldLoop)
+    void updateLoopState(bool shouldLoop)
     {
         if (readerSource.get() != nullptr)
-            readerSource->setLooping (shouldLoop);
+            readerSource->setLooping(shouldLoop);
     }
 
     //==============================================================================
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics &) override;
 
 private:
-enum TransportState
+    enum TransportState
     {
         Stopped,
         Starting,
@@ -148,7 +151,7 @@ enum TransportState
         Stopping
     };
 
-    void changeState (TransportState newState)
+    void changeState(TransportState newState)
     {
         if (state != newState)
         {
@@ -156,48 +159,47 @@ enum TransportState
 
             switch (state)
             {
-                case Stopped:                           // [3]
-                    stopButton.setEnabled (false);
-                    playButton.setEnabled (true);
-                    transportSource.setPosition (0.0);
-                    break;
+            case Stopped: // [3]
+                stopButton.setEnabled(false);
+                playButton.setEnabled(true);
+                transportSource.setPosition(0.0);
+                break;
 
-                case Starting:                          // [4]
-                    transportSource.start();
-                    break;
+            case Starting: // [4]
+                transportSource.start();
+                break;
 
-                case Playing:                           // [5]
-                    playButton.setButtonText ("Pause");
-                    stopButton.setButtonText ("Stop");
-                    stopButton.setEnabled (true);
-                    break;
+            case Playing: // [5]
+                playButton.setButtonText("Pause");
+                stopButton.setButtonText("Stop");
+                stopButton.setEnabled(true);
+                break;
 
-                case Pausing:
-                    transportSource.stop();
-                    break;
+            case Pausing:
+                transportSource.stop();
+                break;
 
-                case Paused:
-                    playButton.setButtonText ("Resume");
-                    stopButton.setButtonText ("Return to Zero");
-                    break;
+            case Paused:
+                playButton.setButtonText("Resume");
+                stopButton.setButtonText("Return to Zero");
+                break;
 
-                case Stopping:                          // [6]
-                    transportSource.stop();
-                    break;
+            case Stopping: // [6]
+                transportSource.stop();
+                break;
             }
         }
     }
 
     void openButtonClicked()
     {
-        chooser = std::make_unique<juce::FileChooser> ("Select a Wave file to play...",
-                                                       juce::File{},
-                                                       "*.wav;*.aif;*.aiff");                     // [7]
-        auto chooserFlags = juce::FileBrowserComponent::openMode
-                          | juce::FileBrowserComponent::canSelectFiles;
-
-        chooser->launchAsync (chooserFlags, [this] (const juce::FileChooser& fc)     // [8]
-        {
+        chooser = std::make_unique<juce::FileChooser>("Select a Wave file to play...",
+                                                      juce::File{},
+                                                      "*.wav;*.aif;*.aiff"); // [7]
+        auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+        std::cout << chooser << std::endl;
+        chooser->launchAsync(chooserFlags, [this](const juce::FileChooser &fc) // [8]
+                             {
             auto file = fc.getResult();
 
             if (file != juce::File{})                                                // [9]
@@ -211,30 +213,31 @@ enum TransportState
                     playButton.setEnabled (true);                                                      // [13]
                     readerSource.reset (newSource.release());                                          // [14]
                 }
-            }
-        });
+            } });
     }
 
     void playButtonClicked()
     {
         if ((state == Stopped) || (state == Paused))
-            {updateLoopState (loopingToggle.getToggleState());
-            changeState (Starting);}
+        {
+            updateLoopState(loopingToggle.getToggleState());
+            changeState(Starting);
+        }
         else if (state == Playing)
-            changeState (Pausing);
+            changeState(Pausing);
     }
 
     void stopButtonClicked()
     {
         if (state == Paused)
-            changeState (Stopped);
+            changeState(Stopped);
         else
-            changeState (Stopping);
+            changeState(Stopping);
     }
 
     void loopButtonChanged()
     {
-        updateLoopState (loopingToggle.getToggleState());
+        updateLoopState(loopingToggle.getToggleState());
     }
     //==============================================================================
     // Your private member variables go here...
@@ -252,5 +255,5 @@ enum TransportState
     juce::AudioTransportSource transportSource;
     TransportState state;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
