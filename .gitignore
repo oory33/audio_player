@@ -1,2 +1,11 @@
 libs
-build
+build/.cmake
+build/CMakeFiles
+build/libs
+build/Makefile
+build/CMakeCache.txt
+build/cmake_install.cmake
+build/src/CMakeFiles
+build/src/Makefile
+build/src/cmake_install.cmake
+build/src/AudioPlayer_artefacts/JuceLibraryCode
